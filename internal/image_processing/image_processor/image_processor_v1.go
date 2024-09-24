@@ -8,15 +8,18 @@ import (
 	"image"
 	"image/color"
 	"image/jpeg"
+	"log/slog"
 	"os"
 )
 
 const (
-	// Величина на которую уменьшится батч. Нужна для того, чтобы в рамку
-	// сканирования не входили границы соседних ячеек
+
+	// The amount by which the scanning batch size will be reduced.
+	// Used to exclude borders of adjacent cells.
 	quadSideDelta = 12
-	// Количество ячеек на поле
+	// Cell count
 	cellCount = 9
+	threshold = 62000
 )
 
 var possibleNumber = map[string]int{
@@ -32,34 +35,36 @@ var possibleNumber = map[string]int{
 }
 
 type ImageProcessorV1 struct {
+	logger *slog.Logger
 }
 
-func NewImageProcessorV1() *ImageProcessorV1 {
-	return &ImageProcessorV1{}
+func NewImageProcessorV1(logger *slog.Logger) *ImageProcessorV1 {
+	return &ImageProcessorV1{
+		logger: logger,
+	}
 }
 
 func (processor *ImageProcessorV1) ProcessImage(path string) [][]int {
-	data := getBattlefield(path)
-
-	fmt.Println(data)
-	return data
-}
-
-func getBattlefield(path string) [][]int {
 	f, err := os.Open(path)
 	if err != nil {
-		panic(err)
+		processor.logger.Error("failed to open file:", path)
 	}
 	defer f.Close()
 
 	img, _, err := image.Decode(f)
 
 	if err != nil {
-		panic(err)
+		processor.logger.Error("failed to decode file:", path)
 	}
 
-	// Находим поле
-	rect := findBlackSquare(img)
+	data := processor.GetBattlefield(img)
+
+	fmt.Println(data)
+	return data
+}
+
+func (processor *ImageProcessorV1) GetBattlefield(img image.Image) [][]int {
+	rect := processor.findGameArea(img)
 	croppedImage := imaging.Crop(img, rect)
 	croppedImage = imaging.AdjustContrast(croppedImage, 80)
 	croppedImage = imaging.Grayscale(croppedImage)
@@ -119,10 +124,11 @@ func cutImageToParts(croppedImage *image.NRGBA, rect image.Rectangle) [][]int {
 	return data
 }
 
-func findBlackSquare(img image.Image) image.Rectangle {
+func (processor *ImageProcessorV1) findGameArea(img image.Image) image.Rectangle {
 	gray := rgbaToGray(img)
 	width := gray.Bounds().Dx()
 	height := gray.Bounds().Dy()
+	processor.logger.Info("process image, width %s, height", width, height)
 
 	quadSideLength := 0
 	quadSide := 0
@@ -148,10 +154,7 @@ func findBlackSquare(img image.Image) image.Rectangle {
 
 	endPoint.X = startPoint.X + quadSide
 	endPoint.Y = startPoint.Y + quadSide
-
-	fmt.Println(quadSide)
-	fmt.Println(startPoint)
-	fmt.Println(endPoint)
+	processor.logger.Info("calculated game area with side %s", quadSide)
 
 	return image.Rectangle{
 		Min: startPoint,
@@ -159,12 +162,11 @@ func findBlackSquare(img image.Image) image.Rectangle {
 	}
 }
 
-// Пережатие изображения в черно-белое. Используется для четкого определения игровой области.
+// Converts the image to black and white. Used to clearly define the playing area.
 func rgbaToGray(img image.Image) *image.Gray {
 	bounds := img.Bounds()
 	gray := image.NewGray(bounds)
 
-	threshold := 62000
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
 			oldColor := img.At(x, y)

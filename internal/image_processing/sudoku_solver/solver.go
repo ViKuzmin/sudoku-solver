@@ -2,35 +2,43 @@ package sudoku_solver
 
 import (
 	"fmt"
+	"log/slog"
 	"ocr-test/internal/image_processing/script_creator"
 )
 
-const N = 9
+const (
+	n        = 9
+	space    = " "
+	nextLine = "\n"
+)
 
 type Solver struct {
+	logger        *slog.Logger
+	scriptCreator *script_creator.ScriptCreator
 }
 
-func NewSolver() *Solver {
-	return &Solver{}
+func NewSolver(logger *slog.Logger) *Solver {
+	return &Solver{
+		logger:        logger,
+		scriptCreator: script_creator.NewScriptCreator(),
+	}
 }
 
 func (solver *Solver) GetScript(data [][]int) string {
 	if SolveSudoku(data) {
-		fmt.Println("Решенная головоломка Sudoku:")
-		printGrid(data)
+		solver.logger.Info("successfully solved")
+		//solver.printGrid(data)
 	} else {
-		fmt.Println("Невозможно найти решение для данной головоломки Sudoku.")
+		solver.logger.Info("failed to solve")
 	}
 
-	creator := script_creator.NewScriptCreator()
-
-	return creator.GetScript(data)
+	return solver.scriptCreator.GetScript(data)
 }
 
 // Проверка, что значение val может быть помещено в ячейку grid[row][col]
 func isSafe(grid [][]int, row, col, val int) bool {
 	// Проверяем строку и столбец
-	for i := 0; i < N; i++ {
+	for i := 0; i < n; i++ {
 		if grid[row][i] == val || grid[i][col] == val {
 			return false
 		}
@@ -51,8 +59,8 @@ func isSafe(grid [][]int, row, col, val int) bool {
 
 // Находим пустую ячейку в сетке и возвращаем ее координаты
 func findEmptyLocation(grid [][]int) (int, int) {
-	for i := 0; i < N; i++ {
-		for j := 0; j < N; j++ {
+	for i := 0; i < n; i++ {
+		for j := 0; j < n; j++ {
 			if grid[i][j] == 0 {
 				return i, j
 			}
@@ -84,9 +92,9 @@ func SolveSudoku(grid [][]int) bool {
 }
 
 // Функция для вывода сетки Sudoku
-func printGrid(grid [][]int) {
-	for i := 0; i < N; i++ {
-		for j := 0; j < N; j++ {
+func (solver *Solver) printGrid(grid [][]int) {
+	for i := 0; i < n; i++ {
+		for j := 0; j < n; j++ {
 			fmt.Printf("%2d", grid[i][j])
 		}
 		fmt.Println()

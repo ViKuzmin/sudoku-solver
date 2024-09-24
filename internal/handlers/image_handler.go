@@ -3,26 +3,55 @@ package handlers
 import (
 	"fmt"
 	"image"
+	"log/slog"
 	"net/http"
+	"ocr-test/internal/image_processing/image_processor"
+	"ocr-test/internal/image_processing/sudoku_solver"
+	"time"
 )
 
-type ImageProcessor struct {
+const (
+	fileKey = "file"
+)
+
+type ImageHandler struct {
+	logger    *slog.Logger
+	Processor *image_processor.ImageProcessorV1
+	Solver    *sudoku_solver.Solver
 }
 
-func (processor *ImageProcessor) ProcessImage(w http.ResponseWriter, r *http.Request) {
-	// Парсим изображение из тела HTTP запроса
-	img, _, err := image.Decode(r.Body)
+func NewImageHandler(logger *slog.Logger, processor *image_processor.ImageProcessorV1) *ImageHandler {
+	solver := sudoku_solver.NewSolver(logger)
+
+	return &ImageHandler{
+		logger:    logger,
+		Processor: processor,
+		Solver:    solver,
+	}
+}
+
+func (processor *ImageHandler) ProcessImage(w http.ResponseWriter, r *http.Request) {
+	logger := processor.logger
+	logger.Info("start process image")
+	now := time.Now()
+	err := r.ParseMultipartForm(32 << 15)
+
 	if err != nil {
-		http.Error(w, "Ошибка при чтении изображения", http.StatusInternalServerError)
+		logger.Error("failed to parse data from request")
+	}
+
+	file, _, err := r.FormFile(fileKey)
+
+	img, _, err := image.Decode(file)
+	if err != nil {
+		logger.Error("failed to decode image from request")
+		http.Error(w, "failed to process file", http.StatusInternalServerError)
 		return
 	}
 
-	// Производим необходимую обработку изображения здесь
-	// Например, можно изменить размер, применить фильтры и т.д.
+	battlefield := processor.Processor.GetBattlefield(img)
+	solve := processor.Solver.GetScript(battlefield)
 
-	// Пример: отображаем размеры изображения
-	bounds := img.Bounds()
-	width := bounds.Dx()
-	height := bounds.Dy()
-	fmt.Fprintf(w, "Ширина: %d, Высота: %d", width, height)
+	fmt.Fprintf(w, solve)
+	logger.Info(fmt.Sprintf("finish process image. Time: %s ms", time.Now().Sub(now).Milliseconds()))
 }
