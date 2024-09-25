@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log/slog"
 	"os"
 	"os/signal"
 	"sudoku-solver/internal"
@@ -20,7 +21,7 @@ func main() {
 
 	go func() {
 		osCall := <-c
-		logger.Info("system call", osCall)
+		logger.Info("system call", slog.Any("signal", osCall))
 		server.Stop()
 		cancel()
 	}()
