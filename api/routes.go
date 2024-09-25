@@ -2,7 +2,7 @@ package api
 
 import (
 	"github.com/gorilla/mux"
-	"ocr-test/internal/handlers"
+	"sudoku-solver/internal/handlers"
 )
 
 func CreateRoutes(imageHandler *handlers.ImageHandler) *mux.Router {

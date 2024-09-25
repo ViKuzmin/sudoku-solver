@@ -47,14 +47,14 @@ func NewImageProcessorV1(logger *slog.Logger) *ImageProcessorV1 {
 func (processor *ImageProcessorV1) ProcessImage(path string) [][]int {
 	f, err := os.Open(path)
 	if err != nil {
-		processor.logger.Error("failed to open file:", path)
+		processor.logger.Error(fmt.Sprintf("failed to open file: %s", path))
 	}
 	defer f.Close()
 
 	img, _, err := image.Decode(f)
 
 	if err != nil {
-		processor.logger.Error("failed to decode file:", path)
+		processor.logger.Error(fmt.Sprintf("failed to decode file: %s", path))
 	}
 
 	data := processor.GetBattlefield(img)
@@ -128,12 +128,11 @@ func (processor *ImageProcessorV1) findGameArea(img image.Image) image.Rectangle
 	gray := rgbaToGray(img)
 	width := gray.Bounds().Dx()
 	height := gray.Bounds().Dy()
-	processor.logger.Info("process image, width %s, height", width, height)
+	processor.logger.Info(fmt.Sprintf("process image with size %dx%d px", width, height))
 
 	quadSideLength := 0
 	quadSide := 0
 	startPoint := image.Point{}
-	endPoint := image.Point{}
 
 	for i := 0; i < height; i++ {
 		for j := 0; j < width; j++ {
@@ -152,9 +151,12 @@ func (processor *ImageProcessorV1) findGameArea(img image.Image) image.Rectangle
 		quadSideLength = 0
 	}
 
-	endPoint.X = startPoint.X + quadSide
-	endPoint.Y = startPoint.Y + quadSide
-	processor.logger.Info("calculated game area with side %s", quadSide)
+	endPoint := image.Point{
+		startPoint.X + quadSide,
+		startPoint.Y + quadSide,
+	}
+
+	processor.logger.Info(fmt.Sprintf("calculated game area with side %d px", quadSide))
 
 	return image.Rectangle{
 		Min: startPoint,

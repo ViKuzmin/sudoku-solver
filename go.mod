@@ -1,9 +1,8 @@
-module ocr-test
+module sudoku-solver
 
 go 1.23.1
 
 require (
-	github.com/ViKuzmin/icah-utils v1.0.2
 	github.com/disintegration/imaging v1.6.2
 	github.com/gorilla/mux v1.8.1
 	github.com/otiai10/gosseract/v2 v2.4.1

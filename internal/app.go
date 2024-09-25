@@ -4,29 +4,31 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
-	"ocr-test/api"
-	"ocr-test/internal/config"
-	"ocr-test/internal/handlers"
-	"ocr-test/internal/image_processing/image_processor"
+	"sudoku-solver/api"
+	"sudoku-solver/internal/config"
+	"sudoku-solver/internal/handlers"
+	"sudoku-solver/internal/image_processing/image_processor"
 	"sync"
 	"time"
 )
 
 type Server struct {
 	logger       *slog.Logger
+	ctx          context.Context
 	cfg          *config.EnvironmentConfig
 	Server       *http.Server
 	ImageHandler *handlers.ImageHandler
 	wg           *sync.WaitGroup
 }
 
-func NewServer(logger *slog.Logger, cfg *config.EnvironmentConfig) *Server {
+func NewServer(logger *slog.Logger, ctx context.Context, cfg *config.EnvironmentConfig) *Server {
 	processor := image_processor.NewImageProcessorV1(logger)
 	imgHandler := handlers.NewImageHandler(logger, processor)
 	wg := new(sync.WaitGroup)
 
 	return &Server{
 		logger:       logger,
+		ctx:          ctx,
 		cfg:          cfg,
 		ImageHandler: imgHandler,
 		wg:           wg,
@@ -35,7 +37,12 @@ func NewServer(logger *slog.Logger, cfg *config.EnvironmentConfig) *Server {
 
 func (server *Server) Start() {
 	routes := api.CreateRoutes(server.ImageHandler)
-	server.logger.Info("starting server with config:", server.cfg)
+	server.logger.LogAttrs(
+		server.ctx,
+		slog.LevelInfo,
+		"starting server with",
+		slog.Any("config", server.cfg),
+	)
 
 	server.Server = &http.Server{
 		Addr:    ":" + server.cfg.ServerConfig.Port,
@@ -46,7 +53,12 @@ func (server *Server) Start() {
 	err := server.Server.ListenAndServe()
 
 	if err != nil && err != http.ErrServerClosed {
-		server.logger.Error("failed to listen and serve", err)
+		server.logger.LogAttrs(
+			server.ctx,
+			slog.LevelError,
+			"failed to listen and serve",
+			slog.Any("err", err),
+		)
 		server.wg.Done()
 		panic("failed to start server")
 	}
@@ -60,7 +72,12 @@ func (server Server) Stop() {
 		cancel()
 	}()
 	if err := server.Server.Shutdown(ctxShutDown); err != nil {
-		server.logger.Error("server shutdown failed", err)
+		server.logger.LogAttrs(
+			server.ctx,
+			slog.LevelError,
+			"server shutdown failed",
+			slog.Any("err", err),
+		)
 	}
 
 	server.logger.Info("server stopped")
