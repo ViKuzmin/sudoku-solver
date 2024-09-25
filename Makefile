@@ -35,3 +35,13 @@ REF_NAME ?= $(shell git symbolic-ref HEAD --short | tr / - 2>/dev/null)
 -include $(DEVGO_PATH)/makefiles/test-unit.mk
 -include $(DEVGO_PATH)/makefiles/bench.mk
 -include $(DEVGO_PATH)/makefiles/reset-ci.mk
+
+
+install_dependencies:
+    sudo apt update
+    sudo apt install libtesseract-dev
+
+build:
+    go build -o myapp main.go
+
+.PHONY: install_dependencies build
