@@ -3,7 +3,7 @@ package sudoku_solver
 import (
 	"fmt"
 	"log/slog"
-	"ocr-test/internal/image_processing/script_creator"
+	"sudoku-solver/internal/image_processing/script_creator"
 )
 
 const (

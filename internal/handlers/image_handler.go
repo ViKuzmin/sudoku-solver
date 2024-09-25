@@ -5,8 +5,8 @@ import (
 	"image"
 	"log/slog"
 	"net/http"
-	"ocr-test/internal/image_processing/image_processor"
-	"ocr-test/internal/image_processing/sudoku_solver"
+	"sudoku-solver/internal/image_processing/image_processor"
+	"sudoku-solver/internal/image_processing/sudoku_solver"
 	"time"
 )
 

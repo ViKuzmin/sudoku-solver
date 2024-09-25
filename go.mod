@@ -1,4 +1,4 @@
-module ocr-test
+module sudoku-solver
 
 go 1.23.1
 

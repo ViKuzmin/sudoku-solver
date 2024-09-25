@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
-	"ocr-test/internal"
-	"ocr-test/internal/config"
 	"os"
 	"os/signal"
+	"sudoku-solver/internal"
+	"sudoku-solver/internal/config"
 )
 
 func main() {
