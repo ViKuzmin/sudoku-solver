@@ -12,11 +12,11 @@ func main() {
 	cfg := config.MustLoadEnvironmentConfig()
 	logger := config.SetUpLogger(cfg.ServerConfig.Env)
 
-	_, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 
-	server := internal.NewServer(logger, cfg)
+	server := internal.NewServer(logger, ctx, cfg)
 
 	go func() {
 		osCall := <-c

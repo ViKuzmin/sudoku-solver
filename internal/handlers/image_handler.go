@@ -53,5 +53,5 @@ func (processor *ImageHandler) ProcessImage(w http.ResponseWriter, r *http.Reque
 	solve := processor.Solver.GetScript(battlefield)
 
 	fmt.Fprintf(w, solve)
-	logger.Info(fmt.Sprintf("finish process image. Time: %s ms", time.Now().Sub(now).Milliseconds()))
+	logger.Info(fmt.Sprintf("finish process image. Time: %d ms", time.Now().Sub(now).Milliseconds()))
 }
