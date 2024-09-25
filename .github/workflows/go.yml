@@ -1,39 +1,65 @@
-name: bench
+#name: bench
+#on:
+#  push:
+#    tags:
+#      - v*
+#    branches:
+#      - master
+#  pull_request:
+#env:
+#  GO111MODULE: "on"
+#jobs:
+#  bench:
+#    strategy:
+#      matrix:
+#        go-version: [ 1.23.x ]
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Install Go
+#        uses: actions/setup-go@v2
+#        with:
+#          go-version: ${{ matrix.go-version }}
+#      - name: Checkout code
+#        uses: actions/checkout@v2
+#      - uses: actions/cache@v2
+#        with:
+#          path: ~/go/pkg
+#          key: ${{ runner.os }}-go-pkg-${{ hashFiles('**/go.mod') }}
+#      - uses: actions/cache@v2
+#        with:
+#          path: ~/go/bin/benchstat
+#          key: ${{ runner.os }}-benchstat
+#      - uses: actions/cache@v2
+#        with:
+#          path: |
+#            bench-master.txt
+#          # Using base sha for PR or new commit hash for master/main push in benchmark result key.
+#          key: ${{ runner.os }}-bench-${{ (github.event.pull_request.base.sha != github.event.after) && github.event.pull_request.base.sha || github.event.after }}
+#      - name: Benchmark
+#        run: REF_NAME=${GITHUB_REF##*/} make bench
+
+name: Run Benchmark
+
 on:
   push:
-    tags:
-      - v*
     branches:
-      - master
+      - main
   pull_request:
-env:
-  GO111MODULE: "on"
+    branches:
+      - main
+
 jobs:
-  bench:
-    strategy:
-      matrix:
-        go-version: [ 1.23.x ]
+  build:
+
     runs-on: ubuntu-latest
+
     steps:
-      - name: Install Go
+      - uses: actions/checkout@v2
+
+      - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: ${{ matrix.go-version }}
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - uses: actions/cache@v2
-        with:
-          path: ~/go/pkg
-          key: ${{ runner.os }}-go-pkg-${{ hashFiles('**/go.mod') }}
-      - uses: actions/cache@v2
-        with:
-          path: ~/go/bin/benchstat
-          key: ${{ runner.os }}-benchstat
-      - uses: actions/cache@v2
-        with:
-          path: |
-            bench-master.txt
-          # Using base sha for PR or new commit hash for master/main push in benchmark result key.
-          key: ${{ runner.os }}-bench-${{ (github.event.pull_request.base.sha != github.event.after) && github.event.pull_request.base.sha || github.event.after }}
-      - name: Benchmark
-        run: REF_NAME=${GITHUB_REF##*/} make bench
+          go-version: '1.17'
+
+      - name: Run Benchmark
+        run: go test -bench . -benchmem

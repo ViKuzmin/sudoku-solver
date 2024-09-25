@@ -128,12 +128,11 @@ func (processor *ImageProcessorV1) findGameArea(img image.Image) image.Rectangle
 	gray := rgbaToGray(img)
 	width := gray.Bounds().Dx()
 	height := gray.Bounds().Dy()
-	processor.logger.Info(fmt.Sprintf("process image, width %d, height %d", width, height))
+	processor.logger.Info(fmt.Sprintf("process image with size %dx%d px", width, height))
 
 	quadSideLength := 0
 	quadSide := 0
 	startPoint := image.Point{}
-	endPoint := image.Point{}
 
 	for i := 0; i < height; i++ {
 		for j := 0; j < width; j++ {
@@ -152,9 +151,12 @@ func (processor *ImageProcessorV1) findGameArea(img image.Image) image.Rectangle
 		quadSideLength = 0
 	}
 
-	endPoint.X = startPoint.X + quadSide
-	endPoint.Y = startPoint.Y + quadSide
-	processor.logger.Info(fmt.Sprintf("calculated game area with side %d", quadSide))
+	endPoint := image.Point{
+		startPoint.X + quadSide,
+		startPoint.Y + quadSide,
+	}
+
+	processor.logger.Info(fmt.Sprintf("calculated game area with side %d px", quadSide))
 
 	return image.Rectangle{
 		Min: startPoint,
