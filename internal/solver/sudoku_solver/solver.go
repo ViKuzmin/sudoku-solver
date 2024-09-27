@@ -1,7 +1,6 @@
 package sudoku_solver
 
 import (
-	"fmt"
 	"log/slog"
 	"sudoku-solver/internal/image_processing/script_creator"
 )
@@ -92,11 +91,11 @@ func SolveSudoku(grid [][]int) bool {
 }
 
 // Функция для вывода сетки Sudoku
-func (solver *Solver) printGrid(grid [][]int) {
-	for i := 0; i < n; i++ {
-		for j := 0; j < n; j++ {
-			fmt.Printf("%2d", grid[i][j])
-		}
-		fmt.Println()
-	}
-}
+//func (solver *Solver) printGrid(grid [][]int) {
+//	for i := 0; i < n; i++ {
+//		for j := 0; j < n; j++ {
+//			fmt.Printf("%2d", grid[i][j])
+//		}
+//		fmt.Println()
+//	}
+//}

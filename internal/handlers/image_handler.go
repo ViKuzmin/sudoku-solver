@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"sudoku-solver/internal/image_processing/image_processor"
-	"sudoku-solver/internal/image_processing/sudoku_solver"
+	"sudoku-solver/internal/solver/sudoku_solver"
 	"time"
 )
 
