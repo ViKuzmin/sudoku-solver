@@ -8,7 +8,7 @@ on:
       - master
 jobs:
   unit_tests:
-    name: "Unit tests"
+    name: Unit tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -18,9 +18,6 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: ^1.22
-      # When you execute your unit tests, make sure to use the "-coverprofile" flag to write a
-      # coverage profile to a file. You will need the name of the file (e.g. "coverage.txt")
-      # in the next step as well as the next job.
       - name: Setup dependencies
         run: |
           sudo apt update
@@ -31,12 +28,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: code-coverage
-          path: coverage.txt # Make sure to use the same file name you chose for the "-coverprofile" in the "Test" step
+          path: coverage.txt
   code_coverage:
-    name: "Code coverage report"
-    if: github.event_name == 'pull_request' # Do not run when workflow is triggered by push to main branch
+    name: Code coverage report
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    needs: unit_tests # Depends on the artifact uploaded by the "unit_tests" job
+    needs: unit_tests
     permissions:
       contents:      read
       actions:       read  # to download code coverage results from "test" job
