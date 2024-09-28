@@ -58,6 +58,6 @@ jobs:
         run: go install github.com/mattn/goveralls@latest
       - name: Send coverage
         env:
-#          COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COVERALLS_TOKEN: ${{ secrets.COVER_ALLS }}
+          COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          COVERALLS_TOKEN: ${{ secrets.COVER_ALLS }}
         run: goveralls -coverprofile=covprofile -service=github
