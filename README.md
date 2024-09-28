@@ -1,6 +1,5 @@
 # sudoku-solver
 
-[![codecov](https://codecov.io/gh/ViKuzmin/sudoku-solver/branch/main/graph/badge.svg)](https://codecov.io/gh/ViKuzmin/sudoku-solver)
+[![Coverage Status](https://coveralls.io/repos/github/ViKuzmin/sudoku-solver/badge.svg?branch=master)](https://coveralls.io/github/ViKuzmin/sudoku-solver?branch=master)
 
-sudoku-solver
-
+sudoku solver
