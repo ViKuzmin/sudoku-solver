@@ -1,0 +1,33 @@
+name: Display Code Coverage
+
+on: push
+
+jobs:
+  display-coverage:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install deps
+        run: |
+          sudo apt update
+          sudo apt install libtesseract-dev
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.23.1'
+
+      - name: Run tests with coverage
+        run: go test -v -coverprofile=coverage.out ./...
+
+      - name: Upload coverage report to GitHub Gist
+        run: |
+          GIST_ID=$(curl -X POST -d @coverage.out -H "Authorization: token ${{ secrets.GIST_SECRET }}" https://api.github.com/gists | grep -o '"id": "[^"]*' | head -1 | cut -c8-)
+          echo "::set-output name=gist_id::$GIST_ID"
+
+      - name: Display coverage badge
+        run: |
+          GIST_ID=${{ steps.upload-coverage.outputs.gist_id }}
+          echo "[![Coverage](https://gist.githubusercontent.com/$GIST_ID/raw/coverage.out)](https://gist.github.com/$GIST_ID)"

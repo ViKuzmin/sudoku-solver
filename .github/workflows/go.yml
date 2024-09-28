@@ -19,7 +19,6 @@
 #        run: |
 #          sudo apt update
 #          sudo apt install libtesseract-dev
-#
 #      - name: Install Go
 #        uses: actions/setup-go@v2
 #        with:
