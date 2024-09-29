@@ -63,7 +63,3 @@ func (creator *ScriptCreator) GetScript(data [][]int) string {
 func (creator *ScriptCreator) Tap(x, y int) string {
 	return "input tap " + strconv.Itoa(x) + " " + strconv.Itoa(y) + "; "
 }
-
-func (creator ScriptCreator) Sleep(time int) string {
-	return "sleep " + strconv.Itoa(time) + "; "
-}

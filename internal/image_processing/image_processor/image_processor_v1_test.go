@@ -69,6 +69,22 @@ func TestImageProcessorV1_ProcessImage(t *testing.T) {
 			},
 			want: expected,
 		},
+		{
+			name:   "test_2",
+			fields: field,
+			args: args{
+				path: "",
+			},
+			want: nil,
+		},
+		{
+			name:   "test_3",
+			fields: field,
+			args: args{
+				path: "tt.txt",
+			},
+			want: nil,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -77,6 +93,32 @@ func TestImageProcessorV1_ProcessImage(t *testing.T) {
 			}
 			if got := processor.ProcessImage(tt.args.path); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetAndroidShellScript() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestNewImageProcessorV1(t *testing.T) {
+	type args struct {
+		logger *slog.Logger
+	}
+	tests := []struct {
+		name string
+		args args
+		want *ImageProcessorV1
+	}{
+		{
+			name: "test_1",
+			args: args{
+				logger: logger,
+			},
+			want: NewImageProcessorV1(logger),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := NewImageProcessorV1(tt.args.logger); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewImageProcessorV1() = %v, want %v", got, tt.want)
 			}
 		})
 	}
