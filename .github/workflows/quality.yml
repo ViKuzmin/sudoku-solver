@@ -1,8 +1,5 @@
 name: Quality
-#on: push
-on:
-  push:
-  pull_request:
+on: push
 jobs:
   test:
     name: Test with Coverage
@@ -21,7 +18,6 @@ jobs:
           sudo apt install libtesseract-dev
       - name: Run Unit tests
         run: |
-#          go test -race -covermode atomic -coverprofile=covprofile ./...
           go test -coverprofile=covprofile ./...
       - name: Install goveralls
         run: go install github.com/mattn/goveralls@latest
