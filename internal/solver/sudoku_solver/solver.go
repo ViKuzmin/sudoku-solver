@@ -1,6 +1,7 @@
 package sudoku_solver
 
 import (
+	"fmt"
 	"log/slog"
 	"sudoku-solver/internal/image_processing/script_creator"
 )
@@ -23,14 +24,15 @@ func NewSolver(logger *slog.Logger) *Solver {
 	}
 }
 
-func (solver *Solver) GetScript(data [][]int) string {
+func (solver *Solver) GetScript(data [][]int) (string, error) {
 	if solver.SolveSudoku(data) {
 		solver.logger.Info("successfully solved")
 	} else {
 		solver.logger.Info("failed to solve")
+		return "", fmt.Errorf("failed to solve")
 	}
 
-	return solver.scriptCreator.GetScript(data)
+	return solver.scriptCreator.GetScript(data), nil
 }
 
 // Проверка, что значение val может быть помещено в ячейку grid[row][col]

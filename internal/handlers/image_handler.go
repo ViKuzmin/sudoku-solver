@@ -51,7 +51,13 @@ func (processor *ImageHandler) GetAndroidShellScript(w http.ResponseWriter, r *h
 	}
 
 	battlefield := processor.Processor.GetBattlefield(img)
-	solve := processor.Solver.GetScript(battlefield)
+	solve, err := processor.Solver.GetScript(battlefield)
+
+	if err != nil {
+		logger.Error("failed to solve sudoku")
+		http.Error(w, "failed to process file", http.StatusInternalServerError)
+		return
+	}
 
 	fmt.Fprintf(w, solve)
 	logger.Info(fmt.Sprintf("finish process image. Time: %d ms", time.Now().Sub(now).Milliseconds()))
