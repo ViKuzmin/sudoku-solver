@@ -3,6 +3,7 @@ package sudoku_solver
 import (
 	"log/slog"
 	"os"
+	"reflect"
 	"sudoku-solver/internal/image_processing/script_creator"
 	"testing"
 )
@@ -21,6 +22,7 @@ var correctData = [][]int{
 }
 
 func TestSolveSudoku(t *testing.T) {
+	solver := NewSolver(logger)
 	type args struct {
 		grid [][]int
 	}
@@ -52,7 +54,7 @@ func TestSolveSudoku(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := SolveSudoku(tt.args.grid); got != tt.want {
+			if got := solver.SolveSudoku(tt.args.grid); got != tt.want {
 				t.Errorf("SolveSudoku() = %v, want %v", got, tt.want)
 			}
 		})
@@ -94,6 +96,32 @@ func TestSolver_GetScript(t *testing.T) {
 			}
 			if got := solver.GetScript(tt.args.data); got != tt.want {
 				t.Errorf("GetScript() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestNewSolver(t *testing.T) {
+	type args struct {
+		logger *slog.Logger
+	}
+	tests := []struct {
+		name string
+		args args
+		want *Solver
+	}{
+		{
+			name: "test_new",
+			args: args{
+				logger: logger,
+			},
+			want: NewSolver(logger),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := NewSolver(tt.args.logger); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewSolver() = %v, want %v", got, tt.want)
 			}
 		})
 	}

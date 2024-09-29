@@ -24,9 +24,8 @@ func NewSolver(logger *slog.Logger) *Solver {
 }
 
 func (solver *Solver) GetScript(data [][]int) string {
-	if SolveSudoku(data) {
+	if solver.SolveSudoku(data) {
 		solver.logger.Info("successfully solved")
-		//solver.printGrid(data)
 	} else {
 		solver.logger.Info("failed to solve")
 	}
@@ -69,7 +68,7 @@ func findEmptyLocation(grid [][]int) (int, int) {
 }
 
 // Решаем головоломку Sudoku с помощью рекурсивного метода
-func SolveSudoku(grid [][]int) bool {
+func (solver *Solver) SolveSudoku(grid [][]int) bool {
 	row, col := findEmptyLocation(grid)
 	if row == -1 && col == -1 {
 		return true // Если все ячейки заполнены, значит решение найдено
@@ -79,7 +78,7 @@ func SolveSudoku(grid [][]int) bool {
 		if isSafe(grid, row, col, num) {
 			grid[row][col] = num
 
-			if SolveSudoku(grid) {
+			if solver.SolveSudoku(grid) {
 				return true
 			}
 
@@ -89,13 +88,3 @@ func SolveSudoku(grid [][]int) bool {
 
 	return false
 }
-
-// Функция для вывода сетки Sudoku
-//func (solver *Solver) printGrid(grid [][]int) {
-//	for i := 0; i < n; i++ {
-//		for j := 0; j < n; j++ {
-//			fmt.Printf("%2d", grid[i][j])
-//		}
-//		fmt.Println()
-//	}
-//}

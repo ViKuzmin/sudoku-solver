@@ -44,10 +44,11 @@ func NewImageProcessorV1(logger *slog.Logger) *ImageProcessorV1 {
 	}
 }
 
-func (processor *ImageProcessorV1) ProcessImage(path string) [][]int {
+func (processor *ImageProcessorV1) ProcessImage(path string) ([][]int, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		processor.logger.Error(fmt.Sprintf("failed to open file: %s", path))
+		return nil, err
 	}
 	defer f.Close()
 
@@ -55,12 +56,13 @@ func (processor *ImageProcessorV1) ProcessImage(path string) [][]int {
 
 	if err != nil {
 		processor.logger.Error(fmt.Sprintf("failed to decode file: %s", path))
+		return nil, err
 	}
 
 	data := processor.GetBattlefield(img)
 
 	fmt.Println(data)
-	return data
+	return data, nil
 }
 
 func (processor *ImageProcessorV1) GetBattlefield(img image.Image) [][]int {
