@@ -1,6 +1,9 @@
 package script_creator
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
 func TestScriptCreator_GetScript(t *testing.T) {
 	type args struct {
@@ -39,6 +42,25 @@ func TestScriptCreator_GetScript(t *testing.T) {
 			creator := &ScriptCreator{}
 			if got := creator.GetScript(tt.args.data); got != tt.want {
 				t.Errorf("GetScript() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestNewScriptCreator(t *testing.T) {
+	tests := []struct {
+		name string
+		want *ScriptCreator
+	}{
+		{
+			name: "test_1",
+			want: NewScriptCreator(),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := NewScriptCreator(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewScriptCreator() = %v, want %v", got, tt.want)
 			}
 		})
 	}
