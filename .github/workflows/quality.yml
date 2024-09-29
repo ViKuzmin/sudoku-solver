@@ -2,10 +2,6 @@ name: Quality
 #on: push
 on:
   push:
-    tags:
-      - v*
-    branches:
-      - master
   pull_request:
 jobs:
   test:
