@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"image"
 	"log/slog"
@@ -30,7 +31,7 @@ func NewImageHandler(logger *slog.Logger, processor *image_processor.ImageProces
 	}
 }
 
-func (processor *ImageHandler) ProcessImage(w http.ResponseWriter, r *http.Request) {
+func (processor *ImageHandler) GetAndroidShellScript(w http.ResponseWriter, r *http.Request) {
 	logger := processor.logger
 	logger.Info("start process image")
 	now := time.Now()
@@ -50,8 +51,53 @@ func (processor *ImageHandler) ProcessImage(w http.ResponseWriter, r *http.Reque
 	}
 
 	battlefield := processor.Processor.GetBattlefield(img)
-	solve := processor.Solver.GetScript(battlefield)
+	solve, err := processor.Solver.GetScript(battlefield)
+
+	if err != nil {
+		logger.Error("failed to solve sudoku")
+		http.Error(w, "failed to process file", http.StatusInternalServerError)
+		return
+	}
 
 	fmt.Fprintf(w, solve)
+	logger.Info(fmt.Sprintf("finish process image. Time: %d ms", time.Now().Sub(now).Milliseconds()))
+}
+
+func (processor *ImageHandler) GetRawAnswerData(w http.ResponseWriter, r *http.Request) {
+	logger := processor.logger
+	logger.Info("start process image")
+	now := time.Now()
+	err := r.ParseMultipartForm(32 << 15)
+
+	if err != nil {
+		logger.Error("failed to parse data from request")
+	}
+
+	file, _, err := r.FormFile(fileKey)
+
+	img, _, err := image.Decode(file)
+	if err != nil {
+		logger.Error("failed to decode image from request")
+		http.Error(w, "failed to process file", http.StatusInternalServerError)
+		return
+	}
+
+	battlefield := processor.Processor.GetBattlefield(img)
+
+	if !processor.Solver.SolveSudoku(battlefield) {
+		logger.Error("failed to decode image from request")
+		http.Error(w, "failed to process file", http.StatusInternalServerError)
+		return
+	}
+
+	marshal, err := json.Marshal(battlefield)
+
+	if err != nil {
+		logger.Error("failed to marshal response")
+		http.Error(w, "failed to process file", http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Fprintf(w, string(marshal))
 	logger.Info(fmt.Sprintf("finish process image. Time: %d ms", time.Now().Sub(now).Milliseconds()))
 }

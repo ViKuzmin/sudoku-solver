@@ -48,6 +48,7 @@ func (processor *ImageProcessorV1) ProcessImage(path string) [][]int {
 	f, err := os.Open(path)
 	if err != nil {
 		processor.logger.Error(fmt.Sprintf("failed to open file: %s", path))
+		return nil
 	}
 	defer f.Close()
 
@@ -55,6 +56,7 @@ func (processor *ImageProcessorV1) ProcessImage(path string) [][]int {
 
 	if err != nil {
 		processor.logger.Error(fmt.Sprintf("failed to decode file: %s", path))
+		return nil
 	}
 
 	data := processor.GetBattlefield(img)

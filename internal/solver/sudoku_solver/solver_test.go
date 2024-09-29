@@ -3,6 +3,7 @@ package sudoku_solver
 import (
 	"log/slog"
 	"os"
+	"reflect"
 	"sudoku-solver/internal/image_processing/script_creator"
 	"testing"
 )
@@ -20,7 +21,20 @@ var correctData = [][]int{
 	{4, 0, 6, 0, 0, 0, 0, 0, 0},
 }
 
+var unsolvableData = [][]int{
+	{1, 1, 0, 0, 4, 6, 0, 0, 0},
+	{3, 0, 0, 0, 0, 0, 0, 8, 0},
+	{0, 0, 0, 0, 7, 0, 0, 0, 0},
+	{2, 0, 0, 0, 0, 0, 6, 0, 5},
+	{0, 5, 0, 8, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 7, 0, 0},
+	{0, 9, 7, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 5, 0, 0, 0, 3, 0},
+	{4, 0, 6, 0, 0, 0, 0, 0, 0},
+}
+
 func TestSolveSudoku(t *testing.T) {
+	solver := NewSolver(logger)
 	type args struct {
 		grid [][]int
 	}
@@ -36,23 +50,13 @@ func TestSolveSudoku(t *testing.T) {
 		},
 		{
 			name: "test_2",
-			args: args{grid: [][]int{
-				{1, 1, 0, 0, 4, 6, 0, 0, 0},
-				{3, 0, 0, 0, 0, 0, 0, 8, 0},
-				{0, 0, 0, 0, 7, 0, 0, 0, 0},
-				{2, 0, 0, 0, 0, 0, 6, 0, 5},
-				{0, 5, 0, 8, 0, 0, 0, 0, 0},
-				{0, 0, 0, 0, 0, 0, 7, 0, 0},
-				{0, 9, 7, 0, 0, 0, 0, 0, 0},
-				{0, 0, 0, 5, 0, 0, 0, 3, 0},
-				{4, 0, 6, 0, 0, 0, 0, 0, 0},
-			}},
+			args: args{grid: unsolvableData},
 			want: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := SolveSudoku(tt.args.grid); got != tt.want {
+			if got := solver.SolveSudoku(tt.args.grid); got != tt.want {
 				t.Errorf("SolveSudoku() = %v, want %v", got, tt.want)
 			}
 		})
@@ -64,6 +68,12 @@ func TestSolver_GetScript(t *testing.T) {
 		logger        *slog.Logger
 		scriptCreator *script_creator.ScriptCreator
 	}
+
+	field := fields{
+		logger:        logger,
+		scriptCreator: script_creator.NewScriptCreator(),
+	}
+
 	type args struct {
 		data [][]int
 	}
@@ -75,15 +85,20 @@ func TestSolver_GetScript(t *testing.T) {
 		want   string
 	}{
 		{
-			name: "test_get_script",
-			fields: fields{
-				logger:        logger,
-				scriptCreator: script_creator.NewScriptCreator(),
-			},
+			name:   "test_get_script",
+			fields: field,
 			args: args{
 				data: correctData,
 			},
 			want: expectedScript,
+		},
+		{
+			name:   "test_unsolved_data",
+			fields: field,
+			args: args{
+				data: unsolvableData,
+			},
+			want: "",
 		},
 	}
 	for _, tt := range tests {
@@ -92,8 +107,34 @@ func TestSolver_GetScript(t *testing.T) {
 				logger:        tt.fields.logger,
 				scriptCreator: tt.fields.scriptCreator,
 			}
-			if got := solver.GetScript(tt.args.data); got != tt.want {
+			if got, _ := solver.GetScript(tt.args.data); got != tt.want {
 				t.Errorf("GetScript() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestNewSolver(t *testing.T) {
+	type args struct {
+		logger *slog.Logger
+	}
+	tests := []struct {
+		name string
+		args args
+		want *Solver
+	}{
+		{
+			name: "test_new",
+			args: args{
+				logger: logger,
+			},
+			want: NewSolver(logger),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := NewSolver(tt.args.logger); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewSolver() = %v, want %v", got, tt.want)
 			}
 		})
 	}

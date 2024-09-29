@@ -1,6 +1,7 @@
 package sudoku_solver
 
 import (
+	"fmt"
 	"log/slog"
 	"sudoku-solver/internal/image_processing/script_creator"
 )
@@ -23,15 +24,15 @@ func NewSolver(logger *slog.Logger) *Solver {
 	}
 }
 
-func (solver *Solver) GetScript(data [][]int) string {
-	if SolveSudoku(data) {
+func (solver *Solver) GetScript(data [][]int) (string, error) {
+	if solver.SolveSudoku(data) {
 		solver.logger.Info("successfully solved")
-		//solver.printGrid(data)
 	} else {
 		solver.logger.Info("failed to solve")
+		return "", fmt.Errorf("failed to solve")
 	}
 
-	return solver.scriptCreator.GetScript(data)
+	return solver.scriptCreator.GetScript(data), nil
 }
 
 // Проверка, что значение val может быть помещено в ячейку grid[row][col]
@@ -69,7 +70,7 @@ func findEmptyLocation(grid [][]int) (int, int) {
 }
 
 // Решаем головоломку Sudoku с помощью рекурсивного метода
-func SolveSudoku(grid [][]int) bool {
+func (solver *Solver) SolveSudoku(grid [][]int) bool {
 	row, col := findEmptyLocation(grid)
 	if row == -1 && col == -1 {
 		return true // Если все ячейки заполнены, значит решение найдено
@@ -79,7 +80,7 @@ func SolveSudoku(grid [][]int) bool {
 		if isSafe(grid, row, col, num) {
 			grid[row][col] = num
 
-			if SolveSudoku(grid) {
+			if solver.SolveSudoku(grid) {
 				return true
 			}
 
@@ -89,13 +90,3 @@ func SolveSudoku(grid [][]int) bool {
 
 	return false
 }
-
-// Функция для вывода сетки Sudoku
-//func (solver *Solver) printGrid(grid [][]int) {
-//	for i := 0; i < n; i++ {
-//		for j := 0; j < n; j++ {
-//			fmt.Printf("%2d", grid[i][j])
-//		}
-//		fmt.Println()
-//	}
-//}
