@@ -14,7 +14,7 @@ import (
 	"testing"
 )
 
-var sample = "sample.jpg"
+var sample = "samp1.jpg"
 var logger = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 var proc = image_processor.NewImageProcessorV1(logger)
 var solver = sudoku_solver.NewSolver(logger)
