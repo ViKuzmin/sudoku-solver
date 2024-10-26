@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"image"
 	"log/slog"
 	"net/http"
 	"sudoku-solver/internal/image_processing/image_processor"
@@ -11,46 +10,33 @@ import (
 	"time"
 )
 
-const (
-	fileKey = "file"
-)
-
 type ImageHandler struct {
-	logger    *slog.Logger
+	Logger    *slog.Logger
 	Processor *image_processor.ImageProcessorV1
 	Solver    *sudoku_solver.Solver
 }
 
 func NewImageHandler(logger *slog.Logger, processor *image_processor.ImageProcessorV1) *ImageHandler {
 	solver := sudoku_solver.NewSolver(logger)
-
 	return &ImageHandler{
-		logger:    logger,
+		Logger:    logger,
 		Processor: processor,
 		Solver:    solver,
 	}
 }
 
 func (processor *ImageHandler) GetAndroidShellScript(w http.ResponseWriter, r *http.Request) {
-	logger := processor.logger
+	logger := processor.Logger
 	logger.Info("start process image")
 	now := time.Now()
-	err := r.ParseMultipartForm(32 << 15)
+	battlefield := processor.Processor.GetBattlefield(r)
 
-	if err != nil {
-		logger.Error("failed to parse data from request")
-	}
-
-	file, _, err := r.FormFile(fileKey)
-
-	img, _, err := image.Decode(file)
-	if err != nil {
+	if battlefield == "" {
 		logger.Error("failed to decode image from request")
 		http.Error(w, "failed to process file", http.StatusInternalServerError)
 		return
 	}
 
-	battlefield := processor.Processor.GetBattlefield(img)
 	solve, err := processor.Solver.GetScript(battlefield)
 
 	if err != nil {
@@ -64,33 +50,27 @@ func (processor *ImageHandler) GetAndroidShellScript(w http.ResponseWriter, r *h
 }
 
 func (processor *ImageHandler) GetRawAnswerData(w http.ResponseWriter, r *http.Request) {
-	logger := processor.logger
+	logger := processor.Logger
 	logger.Info("start process image")
 	now := time.Now()
-	err := r.ParseMultipartForm(32 << 15)
 
-	if err != nil {
-		logger.Error("failed to parse data from request")
-	}
+	battlefield := processor.Processor.GetBattlefield(r)
 
-	file, _, err := r.FormFile(fileKey)
-
-	img, _, err := image.Decode(file)
-	if err != nil {
+	if battlefield == "" {
 		logger.Error("failed to decode image from request")
 		http.Error(w, "failed to process file", http.StatusInternalServerError)
 		return
 	}
 
-	battlefield := processor.Processor.GetBattlefield(img)
+	solveSudoku := processor.Solver.SolveSudoku(battlefield)
 
-	if !processor.Solver.SolveSudoku(battlefield) {
+	if len(solveSudoku) == 0 {
 		logger.Error("failed to decode image from request")
 		http.Error(w, "failed to process file", http.StatusInternalServerError)
 		return
 	}
 
-	marshal, err := json.Marshal(battlefield)
+	marshal, err := json.Marshal(solveSudoku)
 
 	if err != nil {
 		logger.Error("failed to marshal response")
