@@ -7,6 +7,7 @@ require (
 	github.com/gorilla/mux v1.8.1
 	github.com/otiai10/gosseract/v2 v2.4.1
 	github.com/spf13/viper v1.19.0
+	github.com/zanicar/dlx v1.0.0
 )
 
 require (

@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"reflect"
+	"sudoku-solver/internal/handlers"
 	"sudoku-solver/internal/image_processing/image_processor"
 	"sudoku-solver/internal/solver/sudoku_solver"
 	"testing"
@@ -18,7 +19,7 @@ var sample = "samp1.jpg"
 var logger = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 var proc = image_processor.NewImageProcessorV1(logger)
 var solver = sudoku_solver.NewSolver(logger)
-var handler = ImageHandler{
+var handler = handlers.ImageHandler{
 	Logger:    logger,
 	Processor: proc,
 	Solver:    solver,
@@ -33,7 +34,7 @@ func TestNewImageHandler(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want *ImageHandler
+		want *handlers.ImageHandler
 	}{
 		{
 			name: "test_1",
@@ -46,7 +47,7 @@ func TestNewImageHandler(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewImageHandler(tt.args.logger, tt.args.processor); !reflect.DeepEqual(got, tt.want) {
+			if got := handlers.NewImageHandler(tt.args.logger, tt.args.processor); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewImageHandler() = %v, want %v", got, tt.want)
 			}
 		})
@@ -59,7 +60,7 @@ func TestImageHandler_GetRawAnswerData(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		handler ImageHandler
+		handler handlers.ImageHandler
 		args    args
 		wanted  wanted
 	}{
@@ -94,7 +95,7 @@ func TestImageHandler_GetAndroidShellScript(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		handler ImageHandler
+		handler handlers.ImageHandler
 		args    args
 		wanted  wanted
 	}{
@@ -113,7 +114,6 @@ func TestImageHandler_GetAndroidShellScript(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.handler.GetAndroidShellScript(tt.args.w, tt.args.r)
-
 			if actual := w.Body.String(); actual != tt.wanted.data {
 				t.Errorf("Script = %v, want %v", actual, tt.wanted.data)
 			}

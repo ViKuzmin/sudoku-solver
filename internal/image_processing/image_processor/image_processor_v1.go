@@ -9,7 +9,10 @@ import (
 	"image/color"
 	"image/jpeg"
 	"log/slog"
+	"net/http"
 	"os"
+	"strings"
+	"time"
 )
 
 const (
@@ -20,52 +23,47 @@ const (
 	// Cell count
 	cellCount = 9
 	threshold = 62000
+	fileKey   = "file"
 )
 
-var possibleNumber = map[string]int{
-	"1": 1,
-	"2": 2,
-	"3": 3,
-	"4": 4,
-	"5": 5,
-	"6": 6,
-	"7": 7,
-	"8": 8,
-	"9": 9,
+var possibleNumberString = map[string]string{
+	"1": "0",
+	"2": "1",
+	"3": "2",
+	"4": "3",
+	"5": "4",
+	"6": "5",
+	"7": "6",
+	"8": "7",
+	"9": "8",
 }
 
 type ImageProcessorV1 struct {
-	logger *slog.Logger
+	Logger *slog.Logger
 }
 
 func NewImageProcessorV1(logger *slog.Logger) *ImageProcessorV1 {
 	return &ImageProcessorV1{
-		logger: logger,
+		Logger: logger,
 	}
 }
 
-func (processor *ImageProcessorV1) ProcessImage(path string) [][]int {
-	f, err := os.Open(path)
-	if err != nil {
-		processor.logger.Error(fmt.Sprintf("failed to open file: %s", path))
-		return nil
-	}
-	defer f.Close()
-
-	img, _, err := image.Decode(f)
+func (processor *ImageProcessorV1) GetBattlefield(r *http.Request) string {
+	logger := processor.Logger
+	logger.Info("start process image")
+	err := r.ParseMultipartForm(32 << 15)
 
 	if err != nil {
-		processor.logger.Error(fmt.Sprintf("failed to decode file: %s", path))
-		return nil
+		logger.Error("failed to parse data from request")
+		return ""
 	}
 
-	data := processor.GetBattlefield(img)
+	file, _, err := r.FormFile(fileKey)
+	img, _, err := image.Decode(file)
+	if err != nil {
+		return ""
+	}
 
-	fmt.Println(data)
-	return data
-}
-
-func (processor *ImageProcessorV1) GetBattlefield(img image.Image) [][]int {
 	rect := processor.findGameArea(img)
 	croppedImage := imaging.Crop(img, rect)
 	croppedImage = imaging.AdjustContrast(croppedImage, 80)
@@ -74,8 +72,13 @@ func (processor *ImageProcessorV1) GetBattlefield(img image.Image) [][]int {
 	return cutImageToParts(croppedImage, rect)
 }
 
-func cutImageToParts(croppedImage *image.NRGBA, rect image.Rectangle) [][]int {
-	var data = make([][]int, cellCount)
+func cutImageToParts(croppedImage *image.NRGBA, rect image.Rectangle) string {
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+	now := time.Now()
+	logger.Info("start cutting image")
+
+	var result = strings.Builder{}
+
 	stepX := float32(rect.Dx()) / float32(cellCount)
 	stepY := float32(rect.Dy()) / float32(cellCount)
 
@@ -90,7 +93,6 @@ func cutImageToParts(croppedImage *image.NRGBA, rect image.Rectangle) [][]int {
 	coordinateY := 0
 
 	for y := 0; coordinateY < cellCount; y += int(stepY) {
-		data[coordinateY] = make([]int, cellCount)
 		for x := 0; coordinateX < cellCount; x += int(stepX) {
 			imagePart := imaging.Crop(croppedImage, image.Rectangle{
 				Min: image.Point{
@@ -109,11 +111,11 @@ func cutImageToParts(croppedImage *image.NRGBA, rect image.Rectangle) [][]int {
 			client.SetImageFromBytes(buf.Bytes())
 			out, _ := client.Text()
 
-			val, ok := possibleNumber[out]
+			val, ok := possibleNumberString[out]
 			if ok {
-				data[coordinateY][coordinateX] = val
+				result.WriteString(val)
 			} else {
-				data[coordinateY][coordinateX] = 0
+				result.WriteString(".")
 			}
 
 			counter++
@@ -123,14 +125,15 @@ func cutImageToParts(croppedImage *image.NRGBA, rect image.Rectangle) [][]int {
 		coordinateY++
 	}
 
-	return data
+	logger.Info(fmt.Sprintf("finish cutting image. Time: %d ms", time.Now().Sub(now).Milliseconds()))
+	return result.String()
 }
 
 func (processor *ImageProcessorV1) findGameArea(img image.Image) image.Rectangle {
 	gray := rgbaToGray(img)
 	width := gray.Bounds().Dx()
 	height := gray.Bounds().Dy()
-	processor.logger.Info(fmt.Sprintf("process image with size %dx%d px", width, height))
+	processor.Logger.Info(fmt.Sprintf("process image with size %dx%d px", width, height))
 
 	quadSideLength := 0
 	quadSide := 0
@@ -158,7 +161,7 @@ func (processor *ImageProcessorV1) findGameArea(img image.Image) image.Rectangle
 		startPoint.Y + quadSide,
 	}
 
-	processor.logger.Info(fmt.Sprintf("calculated game area with side %d px", quadSide))
+	processor.Logger.Info(fmt.Sprintf("calculated game area with side %d px", quadSide))
 
 	return image.Rectangle{
 		Min: startPoint,
