@@ -26,8 +26,8 @@ func NewSolver(logger *slog.Logger) *Solver {
 	}
 }
 
-func (solver *Solver) GetScript(data string) (string, error) {
-	result := solver.SolveSudoku(data)
+func (solver *Solver) GetScript(battlefield string) (string, error) {
+	result := solver.SolveSudoku(battlefield)
 	if len(result) != 0 {
 		solver.logger.Info("successfully solved")
 	} else {
@@ -35,7 +35,7 @@ func (solver *Solver) GetScript(data string) (string, error) {
 		return "", fmt.Errorf("failed to solve")
 	}
 
-	return solver.scriptCreator.GetScriptString(result), nil
+	return solver.scriptCreator.GetScriptStringWithSkip(result, battlefield), nil
 }
 
 func (solver *Solver) SolveSudoku(init string) []string {

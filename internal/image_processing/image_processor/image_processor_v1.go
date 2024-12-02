@@ -48,6 +48,21 @@ func NewImageProcessorV1(logger *slog.Logger) *ImageProcessorV1 {
 	}
 }
 
+func (processor *ImageProcessorV1) GetBattlefieldFromFile(file *os.File) string {
+	img, _, err := image.Decode(file)
+
+	if err != nil {
+		return ""
+	}
+
+	rect := processor.findGameArea(img)
+	croppedImage := imaging.Crop(img, rect)
+	croppedImage = imaging.AdjustContrast(croppedImage, 80)
+	croppedImage = imaging.Grayscale(croppedImage)
+
+	return cutImageToParts(croppedImage, rect)
+}
+
 func (processor *ImageProcessorV1) GetBattlefield(r *http.Request) string {
 	logger := processor.Logger
 	logger.Info("start process image")
