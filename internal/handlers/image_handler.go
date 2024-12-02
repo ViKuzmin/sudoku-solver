@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
 	"sudoku-solver/internal/image_processing/image_processor"
 	"sudoku-solver/internal/solver/sudoku_solver"
 	"time"
@@ -23,6 +24,29 @@ func NewImageHandler(logger *slog.Logger, processor *image_processor.ImageProces
 		Processor: processor,
 		Solver:    solver,
 	}
+}
+
+func (processor *ImageHandler) GetAndroidShellScriptFromFile(file *os.File) string {
+	logger := processor.Logger
+	logger.Info("start process image")
+	now := time.Now()
+
+	battlefield := processor.Processor.GetBattlefieldFromFile(file)
+
+	if battlefield == "" {
+		logger.Error("failed to decode image from request")
+		return ""
+	}
+
+	solve, err := processor.Solver.GetScript(battlefield)
+
+	if err != nil {
+		logger.Error("failed to solve sudoku")
+		return ""
+	}
+
+	logger.Info(fmt.Sprintf("finish process image. Time: %d ms", time.Now().Sub(now).Milliseconds()))
+	return solve
 }
 
 func (processor *ImageHandler) GetAndroidShellScript(w http.ResponseWriter, r *http.Request) {

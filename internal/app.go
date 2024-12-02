@@ -8,6 +8,7 @@ import (
 	"sudoku-solver/internal/config"
 	"sudoku-solver/internal/handlers"
 	"sudoku-solver/internal/image_processing/image_processor"
+	"sudoku-solver/internal/listener"
 	"sync"
 	"time"
 )
@@ -18,12 +19,15 @@ type Server struct {
 	cfg          *config.EnvironmentConfig
 	Server       *http.Server
 	ImageHandler *handlers.ImageHandler
+	FileListener *listener.FileListener
 	wg           *sync.WaitGroup
 }
 
 func NewServer(logger *slog.Logger, ctx context.Context, cfg *config.EnvironmentConfig) *Server {
 	processor := image_processor.NewImageProcessorV1(logger)
 	imgHandler := handlers.NewImageHandler(logger, processor)
+	fileListener := listener.NewFileListener(imgHandler)
+
 	wg := new(sync.WaitGroup)
 
 	return &Server{
@@ -31,12 +35,14 @@ func NewServer(logger *slog.Logger, ctx context.Context, cfg *config.Environment
 		ctx:          ctx,
 		cfg:          cfg,
 		ImageHandler: imgHandler,
+		FileListener: fileListener,
 		wg:           wg,
 	}
 }
 
 func (server *Server) Start() {
 	routes := api.CreateRoutes(server.ImageHandler)
+	server.FileListener.Listen()
 	server.logger.LogAttrs(
 		server.ctx,
 		slog.LevelInfo,
